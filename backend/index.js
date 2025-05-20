@@ -2,7 +2,24 @@ const express=require("express");
 require("dotenv").config();
 const app=express();
 const mongoose=require("mongoose");
+const bodyParser=require("body-parser");
+const cors=require("cors")
+const jwt = require("jsonwebtoken");
+const cookieParser=require("cookie-parser");
+const AuthRoute=require("./Routes/AuthRoute");
 
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+app.use("/", AuthRoute);
 
 const {PositionsModel}=require("./models/PositionsModel")
 
@@ -22,6 +39,129 @@ mongoose.connect(mongo_url)
         console.log("MONGO CONNECT ERROR !!!")
     });
     
+
+const {HoldingsModel}=require("./models/HoldingsModel");
+
+app.get("/user", (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ message: "Invalid token" });
+    res.json({ username: decoded.username });
+  });
+});
+
+
+
+app.get("/allholdings",async(req,res)=>{
+
+    let allHoldings=await  HoldingsModel.find({});
+
+    res.json(allHoldings);
+
+
+})
+
+const {OrdersModel}=require("./models/OrdersModel")
+
+app.post("/newOrder",async(req,res)=>{
+    console.log("Incoming Order:", req.body); 
+    let newOrder=new OrdersModel({
+    name:req.body.name,
+    qty:req.body.qty,
+    price:req.body.price,
+    mode:"BUY",
+    })
+
+    newOrder.save();
+})
+
+app.post("/sellOrder",async(req,res)=>{
+    console.log("Incoming Order:", req.body); 
+    let newOrder=new OrdersModel({
+    name:req.body.name,
+    qty:req.body.qty,
+    price:req.body.price,
+    mode:"SELL",
+    })
+
+    newOrder.save();
+})
+
+app.get("/fetchOrders",async(req,res)=>{
+    let AllOrders= await OrdersModel.find({});
+    res.json(AllOrders)
+})
+
+
+app.get("/allPositions",async(req,res)=>{
+    let allPositions= await PositionsModel.find({});
+
+    res.json(allPositions);
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // app.get("/addHoldings",async(req,res)=>{
 
@@ -158,52 +298,54 @@ mongoose.connect(mongo_url)
 // })
 
 
-app.get("/addPositions",async(req,res)=>{
-    const tempPositions = [
-  {
-    product: "CNC",
-    name: "EVEREADY",
-    qty: 2,
-    avg: 316.27,
-    price: 312.35,
-    net: "+0.58%",
-    day: "-1.24%",
-    isLoss: true,
-  },
-  {
-    product: "CNC",
-    name: "JUBLFOOD",
-    qty: 1,
-    avg: 3124.75,
-    price: 3082.65,
-    net: "+10.04%",
-    day: "-1.35%",
-    isLoss: true,
-  },
-];
+// app.get("/addPositions",async(req,res)=>{
+//     const tempPositions = [
+//   {
+//     product: "CNC",
+//     name: "EVEREADY",
+//     qty: 2,
+//     avg: 316.27,
+//     price: 312.35,
+//     net: "+0.58%",
+//     day: "-1.24%",
+//     isLoss: true,
+//   },
+//   {
+//     product: "CNC",
+//     name: "JUBLFOOD",
+//     qty: 1,
+//     avg: 3124.75,
+//     price: 3082.65,
+//     net: "+10.04%",
+//     day: "-1.35%",
+//     isLoss: true,
+//   },
+// ];
 
 
-    tempPositions.forEach((item)=>{
+//     tempPositions.forEach((item)=>{
 
-        const newPos=new PositionsModel({
+//         const newPos=new PositionsModel({
 
-    product: item.product,
-    name: item.name,
-    qty: item.qty,
-    avg: item.avg,
-    price: item.price,
-    net: item.net,
-    day: itemm.day,
-    isLoss: item.isLoss,
-        })
+//     product: item.product,
+//     name: item.name,
+//     qty: item.qty,
+//     avg: item.avg,
+//     price: item.price,
+//     net: item.net,
+//     day: item.day,
+//     isLoss: item.isLoss,
+//         })
     
-        newPos.save()
+//         newPos.save()
 
 
     
 
 
    
-    })
+//     })
 
-})
+//     res.send("DONE!!");
+
+// })

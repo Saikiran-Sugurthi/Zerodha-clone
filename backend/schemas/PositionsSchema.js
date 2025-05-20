@@ -10,3 +10,5 @@ const PositionsSchema=new Schema({
     day: String,
     isLoss: Boolean,
 })
+
+module.exports=PositionsSchema

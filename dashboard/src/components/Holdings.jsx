@@ -1,9 +1,38 @@
-import React from "react";
-import { holdings } from "../data/data";
+import React,{useState,useEffect} from "react";
+// import { holdings } from "../data/data";
+import axios from 'axios'
+import { VerticalBarChart } from "./VerticalBarChart";
+
+
 const Holdings = () => {
+
+  const [allHoldings,setAllHoldings]=useState([]);
+
+  const labels=allHoldings.map((item)=>item["name"]);
+
+  const data={
+    labels,
+    datasets:[{
+       label:"stock price",
+      data:allHoldings.map((stock)=>stock.price),
+      backgroundColor:"rgba(255,99,132,0.5)"
+
+    },
+    ],
+}
+
+  useEffect(()=>{
+    axios.get("http://localhost:3000/allholdings").then((res)=>{
+      console.log(res);
+      setAllHoldings(res.data);
+    })
+
+  })
+
+
   return (
     <>
-      <h3 className="title">Holdings ({holdings.length})</h3>
+      <h3 className="title">Holdings ({allHoldings.length})</h3>
 
       <div className="order-table">
         <table>
@@ -18,7 +47,7 @@ const Holdings = () => {
             <th>Day chg.</th>
           </tr>
 
-        {holdings.map((stock,index)=>{
+        {allHoldings.map((stock,index)=>{
           const currVal=stock.price* stock.qty;
           const isProfit=currVal-stock.avg* stock.qty>=0.0;
           const profClass= isProfit?"profit":"loss";
@@ -45,24 +74,7 @@ const Holdings = () => {
         </table>
       </div>
 
-      {/* <div className="row">
-        <div className="col">
-          <h5>
-            29,875.<span>55</span>{" "}
-          </h5>
-          <p>Total investment</p>
-        </div>
-        <div className="col">
-          <h5>
-            31,428.<span>95</span>{" "}
-          </h5>
-          <p>Current value</p>
-        </div>
-        <div className="col">
-          <h5>1,553.40 (+5.20%)</h5>
-          <p>P&L</p>
-        </div>
-      </div> */}
+      <VerticalBarChart data={data}/>
      
     </>
   );
